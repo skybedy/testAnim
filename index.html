@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="cz">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.21.1/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+</head>
+<body>
+    <div id="content">
+        <!-- menu -->
+        <header class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-body border-bottom shadow-sm">
+            <p class="h5 my-0 me-md-auto fw-normal"><a href="/">test</a></p>
+            <nav class="navbar navbar-expand-lg navbar-light" style="padding-top:0;padding-bottom:0">
+            <div class="container-fluid">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0" style="margin-right:50px">
+                    <li class="nav-item"><a class="nav-link"  href="#"  v-on:click="nabidka">Nabídka</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"  v-on:click="kosik">Košík</a></li>
+                    <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"   style="margin-right:100px">Admin</a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="#" v-on:click="seznamObjednavek">Seznam objednávek</a></li>
+                            <li><a class="dropdown-item" href="#" v-on:click="truncateDb">Vyprázdnění databaze</a></li>
+                            <li><a class="dropdown-item" href="#" v-on:click="xmlUploadForm">XML Upload</a></li>
+                    </ul>
+                    </li>
+                    
+                </ul>
+                </div>
+            </div>
+            </nav>
+        </header>
+        <main class="container">
+        <!-- nabídka -->
+        <template v-if="blokNabidka">
+            <select v-model="produktId" id="produkt-select" class="form-select" v-on:change="produkt">
+                <option value="" selected disabled>Vyberte položku</option> 
+                <option v-for="item in nabidkaData" :value="item.produktId">{{item.nazev}}</option>
+            </select>
+        </template>
+        <!-- produkt -->
+        <template v-if="blokProdukt">
+            <h2><u>{{produktPopis.nazev}}</u></h2>
+            <p>{{produktPopis.popis}}</p>
+            <hr>
+            <h2>Cena: {{produktPopis.cena}} Kč</h2>
+            <hr>
+            <form method="post" v-on:submit.prevent="pridaniDoKosiku">
+                <input type="hidden" v-model="produktId"  /> <br>
+                <input v-model="pocetKusu" class="form-control" placeholder="Počet kusů" /> <br>
+                <input type="submit" class="form-control alert-primary" value="Koupit">
+            </form>
+        </template> 
+
+        <template v-if="blokKosik">
+            <table class="table">
+                <tr v-for="item in vypisKosiku.polozky">
+                    <td>{{item.produkt_id}}</td>
+                    <td>{{item.nazev}}</td>
+                    <td>{{item.pocet_kusu}}</td>
+                    <td>{{item.cena_za_polozku_celkem}}</td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                    <td><b>Cena Celkem</b></td>
+                    <td>&nbsp;</td>
+                    <td><b>{{vypisKosiku.celkova_cena}}.00</b></td>
+                </tr>
+            </table>
+
+            <form method="post" v-on:submit.prevent="objednavka">
+                <input v-model="posts.jmeno" class="form-control" placeholder="Jméno" />
+                <input v-model="posts.prijmeni" class="form-control" placeholder="Příjmení" />
+                <input v-model="posts.ulice" class="form-control" placeholder="Ulice + čp" />
+                <input v-model="posts.mesto" class="form-control" placeholder="Město/Obec" />
+                <input v-model="posts.psc" class="form-control" placeholder="PSČ" /> 
+                <input v-model="posts.email" class="form-control" placeholder="Email" /> 
+                <input type="submit" class="form-control alert-primary" value="Objednat">
+            </form>
+        </template> 
+
+        <template v-if="blokSeznamObjednavek">
+            <table class="table">
+                <tr v-for="item in seznamVsechObjednavek">
+                    <td><a href="#" v-on:click="detailObjednavky">{{item.idObjednavky}}</a></td>
+                    <td>{{item.jmeno}} {{item.prijmeni}}</td>
+                    <td>{{item.celkovaCena}}</td>
+                </tr>
+            </table>
+        </template>
+
+        <template v-if="blokDetailObjednavky">
+            <h4>Základní údaje objednávky</h4>
+            <table class="table">
+                <tr><td>Číslo objednávky</td><td>{{detailJedneObjednavky.zakaznik.idObjednavky}}</td></tr>
+                <tr><td>Celková cena</td><td>{{detailJedneObjednavky.zakaznik.celkovaCena}}</td></tr>
+                <tr><td>Jméno</td><td>{{detailJedneObjednavky.zakaznik.jmeno}} {{detailJedneObjednavky.prijmeni}}</td></tr>
+                <tr><td>Ulice</td><td>{{detailJedneObjednavky.zakaznik.ulice}}</td></tr>
+                <tr><td>Město</td><td>{{detailJedneObjednavky.zakaznik.mesto}}</td></tr>
+                <tr><td>PSČ</td><td>{{detailJedneObjednavky.zakaznik.psc}}</td></tr>
+                <tr><td>Email</td><td>{{detailJedneObjednavky.zakaznik.email}}</td></tr>
+            </table><br>
+            <h4>Položky objednávky</h4>
+           <table class="table">
+                <tr v-for="item in detailJedneObjednavky.objednavka_polozky">
+                    <td>{{item.nazev}}</td>
+                    <td>{{item.pocetKusu}}</td>
+                    <td>{{item.cenaCelkem}}</td>
+                </tr>
+            </table>
+        </template>
+
+        <template v-if="blokXmlUpload">
+            <p><b>Nejdříve je třeba vyprázdnit starou databázi</b></p>
+            <p><i>Je to teď jen jako, stejně to na serveru natvrdo nahrává ten vzorový XML, nemám už v téhle chvíli čas řešit regulérní upload</i></p>
+            <p><i>Není tu preloader, počkat, až vyskočí hláška 'Nahráno'</i></p>
+            <form method="post" v-on:submit.prevent="xmlUpload" enctype="multipart/form-data">
+                <input type="file" class="form-control"  id="xmlFile" name="xmlFile"><br>
+                <button class="form-control"  type="submit">Nahrát</button>
+              </form>
+        </template>
+
+        </main>
+    </div>
+
+    <script src="main.js"></script>
+    
+</body>
+</html>
