@@ -167,29 +167,4 @@ class testClass{
         $this->db->query("TRUNCATE produkty_popis");
         $this->db->query("TRUNCATE zakaznici");
     }
-
-    public function dbExport(){
-        $host = 'localhost';
-        $user = 'skybedy';
-        $password = 'mk1313life';
-        $database = 'testanim';
-
-        //$dsn = 'mysql:host='.$host.';dbname='.$dbname;
-        //$pdo = new PDO ($dsn,$user,$password);
-        
-       // $dump_output = shell_exec("mysqldump --opt --default-character-set=UTF8 --single-transaction --protocol=TCP -u --user=skybedy --password=mk1313life --host=localhost testanim > restoresync.sql");
-        //echo "bla";
-        //echo $dump_output; /* Your output of the dump command */
-
-        //return exec('mysqldump --host '. $host .' --user '. $user .' --password '. $password .' '. $database .' --result-file=test.sql') === 0;
-        
-        
-        //var_dump($output);
-    }
-
-
-
-
-
-
 }

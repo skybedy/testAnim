@@ -139,37 +139,4 @@ $app->get(
        }
 );
 
-
-$app->get(
-    "/dbExport",
-        function() use ($app){
-            require_once 'testClass.php';
-            $app->response->setContentType("application/json");
-            $app->response->sendHeaders();
-            $tc = new testClass($this->db);
-            $tc->dbExport();
-       }
-);
-
-
-
-
-
-
-
-
-
-
-$app->get(
-    "/",
-    function () use ($app) {
-        $app->response->setContentType("application/json");
-        $app->response->sendHeaders();
-    }
-);
-
-
-
-
-
 $app->handle($request->getURI());
