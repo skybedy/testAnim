@@ -14,10 +14,10 @@ $request = new Phalcon\Http\Request();
 $app["db"] = function () {
     return new MysqlAdapter(
         [
-            "host"     => "localhost",
-            "username" => "testanim",
-            "password" => "Mla4Jke4_we_5x",
-            "dbname"   => "testanim"
+            "host"     => "",
+            "username" => "",
+            "password" => "",
+            "dbname"   => ""
         ]
     );
 };
